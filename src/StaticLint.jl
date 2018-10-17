@@ -87,9 +87,25 @@ function pass(x, state::State, s::Scope, index, blockref, delayed)
     # Check whether `x` includes a file.
     get_include(x, state, s1)
     # Traverse sub expressions of `x`.
-    for a in x
-        ablockref = get_ref(a, state, s1, blockref, delayed)
-        pass(a, state, s1, s1.index, ablockref, delayed)
+    
+    if x isa CSTParser.BinarySyntaxOpCall && x.op.kind == CSTParser.Tokenize.Tokens.EQ && s1 != s
+        
+        offset = state.loc.offset
+        state.loc.offset += x.arg1.fullspan
+
+        ablockref = get_ref(x.op, state, s1, blockref, delayed)
+        pass(x.op, state, s1, s1.index, ablockref, delayed)
+        ablockref = get_ref(x.arg2, state, s1, blockref, delayed)
+        pass(x.arg2, state, s1, s1.index, ablockref, delayed)
+
+        state.loc.offset = offset
+        ablockref = get_ref(x.arg1, state, s1, blockref, delayed)
+        pass(x.arg1, state, s1, s1.index, ablockref, delayed)
+    else
+        for a in x
+            ablockref = get_ref(a, state, s1, blockref, delayed)
+            pass(a, state, s1, s1.index, ablockref, delayed)
+        end
     end
     s
 end
@@ -137,6 +153,7 @@ include("references.jl")
 include("utils.jl")
 include("documentserver.jl")
 include("helpers.jl")
+include("inference.jl")
 include("display.jl")
 
 

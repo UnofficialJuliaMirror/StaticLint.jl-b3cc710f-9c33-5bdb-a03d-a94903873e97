@@ -17,12 +17,32 @@ function collect_bindings(f, index = f.index, syms=  [])
 end
 
 # Find reference at offset
-function find_ref(f, offset)
+function find_ref(f::File, offset)
     for rref in f.rref
         if rref.r.loc.offset == offset
             return rref 
         elseif rref.r.loc.offset > offset
             break
+        end
+    end
+    return nothing
+end
+
+function find_ref(rrefs::Vector{ResolvedRef}, offset)
+    for rref in rrefs
+        if rref.r.loc.offset == offset
+            return rref 
+        elseif rref.r.loc.offset > offset
+            break
+        end
+    end
+    return nothing
+end
+
+function find_ref(rrefs::Vector{ResolvedRef}, name::String, si::SIndex)
+    for rref in rrefs
+        if rref.r.val isa CSTParser.IDENTIFIER && rref.r.val.val == name && inscope(si, rref.r.si)
+            return rref
         end
     end
     return nothing

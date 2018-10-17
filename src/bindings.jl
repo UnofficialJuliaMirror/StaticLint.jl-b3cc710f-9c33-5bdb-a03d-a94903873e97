@@ -17,10 +17,9 @@ Binding(loc, si, val, t= nothing) = Binding(loc, si, val, t, Reference[])
 
 function add_binding(name, x, state, s, t = nothing)
     # global bindinglist
-    s.bindings += 1
     val = Binding(Location(state), SIndex(s.index, s.bindings), x, t)
-    
     add_binding(name, val, state.bindings, s.index)
+    s.bindings += 1
 end
 
 function add_binding(name, binding::Binding, bindings::Dict, index::Tuple)
@@ -157,9 +156,9 @@ function int_binding(x, state, s)
             if !(arg isa CSTParser.PUNCTUATION) 
                 #TODO: add subtype marker
                 arg1 = CSTParser.rem_curly(CSTParser.rem_subtype(arg))
-                s.bindings += 1
                 val = Binding(Location(state.loc.file, offset), SIndex(s.index, s.bindings), arg1, _DataType)
                 add_binding(CSTParser.str_value(arg1), val, state.bindings, s.index)
+                s.bindings += 1
             end
             offset += arg.fullspan
         end 
@@ -170,9 +169,9 @@ function int_binding(x, state, s)
             if !(arg isa CSTParser.PUNCTUATION) 
                 #TODO: add subtype marker
                 arg1 = CSTParser.rem_curly(CSTParser.rem_subtype(arg))
-                s.bindings += 1
                 val = Binding(Location(state.loc.file, offset), SIndex(s.index, s.bindings), arg1, _DataType)
                 add_binding(CSTParser.str_value(arg1), val, state.bindings, s.index)
+                s.bindings += 1
             end
             offset += arg.fullspan
         end
@@ -195,9 +194,9 @@ function assign_to_tuple(x, val, offset, state, s)
         end
     else
         name = CSTParser.str_value(CSTParser.rem_decl(x))
-        s.bindings += 1
         b = Binding(Location(state.loc.file, offset), SIndex(s.index, s.bindings), val, nothing)
         add_binding(name, b, state.bindings, s.index)
+        s.bindings += 1
         
         offset += x.fullspan
     end
@@ -222,9 +221,9 @@ function get_fcall_bindings(sig, state, s)
             if !(arg isa CSTParser.PUNCTUATION)
                 #TODO: add subtype marker
                 arg1 = CSTParser.rem_curly(CSTParser.rem_subtype(arg))
-                s.bindings += 1
                 val = Binding(Location(state.loc.file, offset1), SIndex(s.index, s.bindings), arg1, _DataType)
                 add_binding(CSTParser.str_value(arg1), val, state.bindings, s.index)
+                s.bindings += 1
             end
             offset1 += arg.fullspan
         end        
@@ -238,9 +237,9 @@ function get_fcall_bindings(sig, state, s)
     if sig isa CSTParser.EXPR{CSTParser.Call}
         if sig.args[1] isa CSTParser.EXPR{CSTParser.InvisBrackets} && length(sig.args[1].args) == 3 && sig.args[1].args[2] isa CSTParser.BinarySyntaxOpCall && sig.args[1].args[2].op.kind == CSTParser.Tokens.DECLARATION
             dtname = CSTParser.rem_decl(sig.args[1].args[2])
+            val = Binding(Location(state.loc.file, offset + sig.args[1].args[1].fullspan), SIndex(s.index, s.bindings), dtname, _DataType)
+            add_binding(CSTParser.str_value(dtname), val, state.bindings, s.index)
             s.bindings += 1
-                val = Binding(Location(state.loc.file, offset + sig.args[1].args[1].fullspan), SIndex(s.index, s.bindings), dtname, _DataType)
-                add_binding(CSTParser.str_value(dtname), val, state.bindings, s.index)
         end
         if sig.args[1] isa CSTParser.EXPR{CSTParser.Curly}
             offset1 = offset + sig.args[1].args[1].fullspan
@@ -249,9 +248,9 @@ function get_fcall_bindings(sig, state, s)
                 if !(arg isa CSTParser.PUNCTUATION)
                     #TODO: add subtype marker
                     arg1 = CSTParser.rem_subtype(arg)
-                    s.bindings += 1
                     val = Binding(Location(state.loc.file, offset1), SIndex(s.index, s.bindings), arg1, _DataType)
                     add_binding(CSTParser.str_value(arg1), val, state.bindings, s.index)
+                    s.bindings += 1
                 end
                 offset1 += arg.fullspan
             end
@@ -309,9 +308,9 @@ function get_arg_type(arg, state, s, offset)
     else
         t = nothing
     end
-    s.bindings += 1
     val = Binding(Location(state.loc.file, offset), SIndex(s.index, s.bindings), arg, t)
     add_binding(CSTParser.str_value(arg), val, state.bindings, s.index)
+    s.bindings += 1
     return
 end
 

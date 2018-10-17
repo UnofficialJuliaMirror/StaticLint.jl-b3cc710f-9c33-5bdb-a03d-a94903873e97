@@ -92,7 +92,12 @@ a + b = a + b
 """ |> test_sl
 @test isempty(f.uref)
 
-f = """
+f = """ 
 struct Foo end
 (foo::Foo)() = 1""" |> test_sl
+@test isempty(f.uref)
+
+# assignment happens r-to-l
+f = """
+var1 = var1""" |> test_sl
 @test isempty(f.uref)
